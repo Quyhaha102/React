@@ -2,27 +2,32 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 const Header = () => {
     return (
         <Navbar expand="lg" className="bg-body-tertiary">
             <Container>
-                <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+                {/* <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand> */}
+                <NavLink to="/" className="navbar-brand">
+                    Hoidan IT
+                </NavLink>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
-                        <Link to="/" className="nav-link">
+                        <NavLink to="/" className="nav-link">
                             Home
-                        </Link>
-                        <Link to="/users" className="nav-link">
+                        </NavLink>
+                        <NavLink to="/users" className="nav-link">
                             User
-                        </Link>
-                        <Link to="/admin" className="nav-link">
+                        </NavLink>
+                        <NavLink to="/admin" className="nav-link">
                             Admin
-                        </Link>
+                        </NavLink>
                     </Nav>
                     <Nav>
-                        <NavDropdown title="Settings" id="basic-nav-dropdown">
+                        <button className="btn-login">Log in</button>
+                        <button className="btn-signup">Sige up</button>
+                        {/* <NavDropdown title="Settings" id="basic-nav-dropdown">
                             <NavDropdown.Item href="#action/3.1">
                                 log in
                             </NavDropdown.Item>
@@ -32,7 +37,7 @@ const Header = () => {
                             <NavDropdown.Item href="#action/3.3">
                                 Profile
                             </NavDropdown.Item>
-                        </NavDropdown>
+                        </NavDropdown> */}
                     </Nav>
                 </Navbar.Collapse>
             </Container>
