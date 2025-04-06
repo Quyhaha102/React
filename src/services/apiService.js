@@ -23,4 +23,12 @@ const putUpdateUser = async (data) => {
     return await axios.put("/api/v1/participant", form);
 };
 
-export { postCreateNewUser, getAllUsers, putUpdateUser };
+const deleteUser = async (userid) => {
+    return await axios.delete("/api/v1/participant", { data: { id: userid } });
+};
+const getUserWithPaginate = async (page, limit) => {
+    return await axios.get(
+        `http://localhost:8081/api/v1/participant?page=${page}&limit=${limit}`
+    );
+};
+export { postCreateNewUser, getAllUsers, putUpdateUser, deleteUser, getUserWithPaginate };

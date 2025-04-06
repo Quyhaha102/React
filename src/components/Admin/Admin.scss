@@ -5,9 +5,15 @@
             height: 100vh !important;
         }
     }
-    .admin-content{
+    .admin-content {
         width: 100%;
-        .admin-header{}
-        .admin-main{}
+        .admin-header {
+        }
+        .admin-main {
+            .pagination {
+                display: flex;
+                // justify-content: center;
+            }
+        }
     }
 }

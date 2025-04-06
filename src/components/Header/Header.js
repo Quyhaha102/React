@@ -2,7 +2,7 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link  } from "react-router-dom";
 const Header = () => {
     return (
         <Navbar expand="lg" className="bg-body-tertiary">
@@ -25,7 +25,10 @@ const Header = () => {
                         </NavLink>
                     </Nav>
                     <Nav>
-                        <button className="btn-login">Log in</button>
+                        <button className="btn-login">
+                            Log in
+                            <Link to="/login" />
+                        </button>
                         <button className="btn-signup">Sige up</button>
                         {/* <NavDropdown title="Settings" id="basic-nav-dropdown">
                             <NavDropdown.Item href="#action/3.1">
