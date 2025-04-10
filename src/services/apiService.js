@@ -31,4 +31,31 @@ const getUserWithPaginate = async (page, limit) => {
         `http://localhost:8081/api/v1/participant?page=${page}&limit=${limit}`
     );
 };
-export { postCreateNewUser, getAllUsers, putUpdateUser, deleteUser, getUserWithPaginate };
+const postLogin = async (userEmail, userPassword) => {
+    return await axios.post("/api/v1/login", {
+        email: userEmail,
+        password: userPassword,
+    });
+
+    // const postLogin = async (userEmail, userPassword) => {
+    // return await axios.post("/api/v1/login", { userEmail, userPassword });
+    // };
+};
+
+const postRegister = async (userEmail, userName, userPassword) => {
+    return await axios.post("/api/v1/register", {
+        email: userEmail,
+        username: userName,
+        password: userPassword,
+    });
+};
+
+export {
+    postCreateNewUser,
+    getAllUsers,
+    putUpdateUser,
+    deleteUser,
+    getUserWithPaginate,
+    postLogin,
+    postRegister
+};

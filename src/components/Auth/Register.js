@@ -1,16 +1,17 @@
-import "./Login.scss";
+import "./Register.scss";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { postLogin } from "../../services/apiService";
+import { postRegister } from "../../services/apiService";
 
 import { Icon } from "react-icons-kit";
 import { eye } from "react-icons-kit/feather/eye";
 import { eyeOff } from "react-icons-kit/feather/eyeOff";
 
-const Login = (props) => {
+const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
     const [type, setType] = useState("password");
     const [icon, setIcon] = useState(eyeOff);
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const Login = (props) => {
             );
     };
 
-    const handleLogin = async () => {
+    const handleSignUp = async () => {
         // validate
         const emailValid = validateEmail(email);
         if (!emailValid) {
@@ -34,17 +35,16 @@ const Login = (props) => {
             toast.error("Invalid password");
             return;
         }
-
-        // submit apis
-        let data = await postLogin(email, password);
-        console.log("check data", data);
+        //call api
+        let data = await postRegister(email, username, password);
         if (data && data.EC === 0) {
             toast.success(data.EM);
-            navigate("/");
+            navigate("/login");
         }
         if (data && +data.EC !== 0) {
             toast.error(data.EM);
         }
+        // navigate("/login");
     };
 
     const handleToggle = () => {
@@ -58,19 +58,16 @@ const Login = (props) => {
     };
 
     return (
-        <div className="login-container">
+        <div className="signup-container">
             <div className="header">
-                <span>Don't have an account yet? </span>
+                <span>Already have an account </span>
 
                 <div>
-                    <button onClick={() => navigate("/register")}>
-                        {" "}
-                        Sign up{" "}
-                    </button>
+                    <button onClick={() => navigate("/login")}>Login</button>
                 </div>
             </div>
             <div className="title col-4 mx-auto">Hoidan IT</div>
-            <div className="welcome col-4 mx-auto">hello, who's this?</div>
+            <div className="welcome col-4 mx-auto">Start your journey?</div>
             <div className="content-form col-4 mx-auto">
                 <div className="from-group ">
                     <label className="form-label">Email</label>
@@ -78,6 +75,7 @@ const Login = (props) => {
                         type="email"
                         className="form-control"
                         value={email}
+                        required
                         onChange={(event) => setEmail(event.target.value)}
                     />
                 </div>
@@ -93,15 +91,22 @@ const Login = (props) => {
                         <Icon className="icon" icon={icon} size={20} />
                     </span>
                 </div>
+                <div className="from-group ">
+                    <label className="form-label">Username</label>
+                    <input
+                        className="form-control"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                    />
+                </div>
             </div>
-            <div className="forgot-password">Forgot password?</div>
             <div className="btn-submit col-4 mx-auto">
                 <button
                     onClick={() => {
-                        handleLogin();
+                        handleSignUp();
                     }}
                 >
-                    Log in
+                    Create my free account
                 </button>
             </div>
             <div className="text-center">
@@ -117,5 +122,4 @@ const Login = (props) => {
         </div>
     );
 };
-
-export default Login;
+export default Register;
