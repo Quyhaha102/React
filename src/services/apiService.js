@@ -1,3 +1,4 @@
+import { delay } from "lodash";
 import axios from "../utils/axiosCustomize";
 import FormData from "form-data";
 
@@ -35,6 +36,7 @@ const postLogin = async (userEmail, userPassword) => {
     return await axios.post("/api/v1/login", {
         email: userEmail,
         password: userPassword,
+        delay: 1000,
     });
 
     // const postLogin = async (userEmail, userPassword) => {
