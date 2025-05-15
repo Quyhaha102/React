@@ -1,9 +1,10 @@
 import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getDataQuiz } from "../../services/apiService";
+import { getDataQuiz, postSubmitQuiz } from "../../services/apiService";
 import _, { set } from "lodash";
 import "./DetailQuiz.scss";
 import Question from "./Question";
+import ModalResult from "./ModalResult";
 
 const DetailQuiz = () => {
     const params = useParams();
@@ -13,13 +14,15 @@ const DetailQuiz = () => {
     const [dataQuiz, setDataQuiz] = useState([]);
     const [index, setIndex] = useState(0);
 
+    const [isShowModalResult, setIsShowModalResult] = useState(false);
+    const [dataModalResult, setDataModalResult] = useState({});
+
     useEffect(() => {
         fetchQuestion();
     }, [quizId]);
 
     const fetchQuestion = async () => {
         let res = await getDataQuiz(quizId);
-        console.log("check quiz by user", res);
 
         if (res && res.EC === 0) {
             let raw = res.DT;
@@ -47,7 +50,6 @@ const DetailQuiz = () => {
                     };
                 })
                 .value();
-            console.log("answers", data);
             setDataQuiz(data);
         }
     };
@@ -63,9 +65,11 @@ const DetailQuiz = () => {
     };
 
     const handleCheckbox = (answerId, questionId) => {
-        let dataQuizClone = _.cloneDeep(dataQuiz); // react hook doesn't merge state    
-        let question = dataQuizClone.find((item) => +item.questionId === +questionId);
-        if (question &&  question.answers) {
+        let dataQuizClone = _.cloneDeep(dataQuiz); // react hook doesn't merge state
+        let question = dataQuizClone.find(
+            (item) => +item.questionId === +questionId
+        );
+        if (question && question.answers) {
             question.answers = question.answers.map((item) => {
                 if (+item.id === +answerId) {
                     item.issSelected = !item.issSelected;
@@ -73,13 +77,53 @@ const DetailQuiz = () => {
                 return item;
             });
         }
-        let index = dataQuizClone.findIndex((item) => +item.questionId === +questionId);
+        let index = dataQuizClone.findIndex(
+            (item) => +item.questionId === +questionId
+        );
         if (index > -1) {
             dataQuizClone[index] = question;
             setDataQuiz(dataQuizClone);
         }
+    };
+    const handleFinishQuiz = async () => {
+        let payload = {
+            quizId: +quizId,
+            answers: [],
+        };
+        let answers = [];
+        if (dataQuiz && dataQuiz.length > 0) {
+            dataQuiz.forEach((question) => {
+                let questionId = question.questionId;
+                let userAnswerId = [];
 
-    }
+                question.answers.forEach((a) => {
+                    if (a.issSelected === true) {
+                        userAnswerId.push(a.id);
+                    }
+                });
+                answers.push({
+                    questionId: +questionId,
+                    userAnswerId: userAnswerId,
+                });
+            });
+            payload.answers = answers;
+            console.log("payload", payload);
+            //sumit api
+            let res = await postSubmitQuiz(payload);
+            console.log("res", res);
+            if (res && res.EC === 0) {
+                setDataModalResult({
+                    countCorrect: res.DT.countCorrect,
+                    countTotal: res.DT.countTotal,
+                    quizData: res.DT.quizData,
+                });
+                setIsShowModalResult(true);
+            } else {
+                alert("something wrong with api");
+            }
+            console.log("dataModalResult", dataModalResult);
+        }
+    };
 
     return (
         <div className="detail-quiz-container">
@@ -121,13 +165,18 @@ const DetailQuiz = () => {
                     </button>
                     <button
                         className="btn btn-warning"
-                        onClick={() => handleNext}
+                        onClick={() => handleFinishQuiz()}
                     >
                         Finish
                     </button>
                 </div>
             </div>
             <div className="right-content">count down</div>
+            <ModalResult
+                show={isShowModalResult}
+                setShow={setIsShowModalResult}
+                dataModalResult={dataModalResult}
+            ></ModalResult>
         </div>
     );
 };
