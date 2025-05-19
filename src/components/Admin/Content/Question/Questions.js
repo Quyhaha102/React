@@ -38,6 +38,8 @@ const Questions = (props) => {
         title: "",
         url: "",
     });
+    
+
 
     const handleAddRemoveQuestion = (type, id) => {
         if (type === "ADD") {
