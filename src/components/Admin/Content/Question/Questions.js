@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 import "./Questions.scss";
 import { BsFillPatchPlusFill } from "react-icons/bs";
@@ -9,16 +9,15 @@ import { RiImageAddFill } from "react-icons/ri";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import Lightbox from "react-awesome-lightbox";
+import {
+    postCreateNewAnswerForQuestion,
+    postCreateNewQuestionForQuiz,
+    getAllQuizForAdmin,
+} from "../../../../services/apiService";
+import { toast } from "react-toastify";
 
 const Questions = (props) => {
-    const options = [
-        { value: "chocolate", label: "Chocolate" },
-        { value: "strawberry", label: "Strawberry" },
-        { value: "vanilla", label: "Vanilla" },
-    ];
-    const [selectedQuiz, setSelectedQuiz] = useState({});
-
-    const [questions, setQuestions] = useState([
+    const initQuestions = [
         {
             id: uuidv4(),
             description: "",
@@ -32,14 +31,32 @@ const Questions = (props) => {
                 },
             ],
         },
-    ]);
+    ];
+    const [questions, setQuestions] = useState(initQuestions);
     const [isPreviewImage, setIsPreviewImage] = useState(false);
     const [dataImagePreview, setDataImagePreview] = useState({
         title: "",
         url: "",
     });
-    
 
+    const [listQuiz, setListQuiz] = useState([]);
+    const [selectedQuiz, setSelectedQuiz] = useState({});
+
+    useEffect(() => {
+        fetchQuiz();
+    }, []);
+    const fetchQuiz = async () => {
+        let res = await getAllQuizForAdmin();
+        if (res && res.EC === 0) {
+            let newQuiz = res.DT.map((item) => {
+                return {
+                    value: item.id,
+                    label: `${item.id} - ${item.description}`,
+                };
+            });
+            setListQuiz(newQuiz);
+        }
+    };
 
     const handleAddRemoveQuestion = (type, id) => {
         if (type === "ADD") {
@@ -133,9 +150,7 @@ const Questions = (props) => {
             setQuestions(questionsClone);
         }
     };
-    const handleSubmitQuestionForQuiz = () => {
-        console.log("questions", questions);
-    };
+
     const handlePreviewImage = (questionId) => {
         let questionsClone = _.cloneDeep(questions);
         let index = questionsClone.findIndex((item) => item.id === questionId);
@@ -148,6 +163,71 @@ const Questions = (props) => {
         }
     };
 
+    const handleSubmitQuestionForQuiz = async () => {
+        //todo
+        if (_.isEmpty(selectedQuiz)) {
+            toast.error("Please choose a Quiz");
+            return;
+        }
+        // validate data
+        // validate answer
+        let isValidAnswer = true;
+        let indexQ = 0,
+            indexA = 0;
+        for (let i = 0; i < questions.length; i++) {
+            for (let j = 0; j < questions[i].answers.length; j++) {
+                if (!questions[i].answers[j].description) {
+                    isValidAnswer = false;
+                    indexA = j;
+                    break;
+                }
+            }
+            indexQ = i;
+            if (isValidAnswer === false) {
+                break;
+            }
+        }
+        if (isValidAnswer === false) {
+            toast.error(
+                `Not empty Answer ${indexA + 1} at Question ${indexQ + 1}`
+            );
+            return;
+        }
+        // validate question
+        let isValidQ = true;
+        let indexQ1 = 0;
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].description) {
+                isValidQ = false;
+                indexQ = i;
+                break;
+            }
+        }
+        if (isValidQ === false) {
+            toast.error(`Not empty description for Question ${indexQ + 1}`);
+            return;
+        }
+
+        //submit question
+        for (const question of questions) {
+            await postCreateNewQuestionForQuiz(
+                +selectedQuiz.value,
+                question.description,
+                question.imageFile
+            );
+            //submit answer
+            for (const answer of question.answers) {
+                await postCreateNewAnswerForQuestion(
+                    answer.description,
+                    answer.isCorrect,
+                    q.DT.id
+                );
+            }
+        }
+        toast.success("Create questions and answer succed!");
+        setQuestions(initQuestionsg);
+    };
+
     return (
         <div className="questions-container">
             <div className="title">Manage Questions</div>
@@ -158,7 +238,7 @@ const Questions = (props) => {
                     <Select
                         defaultValue={selectedQuiz}
                         onChange={setSelectedQuiz}
-                        options={options}
+                        options={listQuiz}
                     />
                 </div>
                 <div className="mt-3 mb-2 ">Add questions:</div>
@@ -204,7 +284,9 @@ const Questions = (props) => {
                                         <span>
                                             {question.imageName ? (
                                                 <span
-                                                    style={{cursor: "pointer"}}
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
                                                     onClick={() =>
                                                         handlePreviewImage(
                                                             question.id
