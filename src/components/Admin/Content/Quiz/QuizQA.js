@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Select from "react-select";
-import "./Questions.scss";
+import "./QuizQA.scss";
 import { BsFillPatchPlusFill } from "react-icons/bs";
 import { BsPatchMinusFill } from "react-icons/bs";
 import { AiOutlineMinusCircle } from "react-icons/ai";
@@ -13,10 +13,11 @@ import {
     postCreateNewAnswerForQuestion,
     postCreateNewQuestionForQuiz,
     getAllQuizForAdmin,
+    getQuizWithQA,
 } from "../../../../services/apiService";
 import { toast } from "react-toastify";
 
-const Questions = (props) => {
+const QuizQA = (props) => {
     const initQuestions = [
         {
             id: uuidv4(),
@@ -39,12 +40,44 @@ const Questions = (props) => {
         url: "",
     });
 
+    useEffect(() => {
+        fetchQuiz();
+    }, []);
+
     const [listQuiz, setListQuiz] = useState([]);
     const [selectedQuiz, setSelectedQuiz] = useState({});
 
     useEffect(() => {
-        fetchQuiz();
-    }, []);
+        if (selectedQuiz && selectedQuiz.value) {
+            fetchQuestion(selectedQuiz.value);
+        }
+    }, [selectedQuiz]);
+
+    const fetchQuestion = async (quizId) => {
+        let res = await getQuizWithQA(quizId);
+        console.log("check res", res);
+        setQuestions(res.DT.qa);
+    };
+
+    // return a promise that resolves with a File instance
+    function urltoFile(url, filename, mimeType) {
+        if (url.startsWith("data:")) {
+            var arr = url.split(","),
+                mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[arr.length - 1]),
+                n = bstr.length,
+                u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            var file = new File([u8arr], filename, { type: mime || mimeType });
+            return Promise.resolve(file);
+        }
+        return fetch(url)
+            .then((res) => res.arrayBuffer())
+            .then((buf) => new File([buf], filename, { type: mimeType }));
+    }
+
     const fetchQuiz = async () => {
         let res = await getAllQuizForAdmin();
         if (res && res.EC === 0) {
@@ -230,8 +263,6 @@ const Questions = (props) => {
 
     return (
         <div className="questions-container">
-            <div className="title">Manage Questions</div>
-            <hr />
             <div className="add-new-question">
                 <div className="col-6 form-group">
                     <label className="mb-2">Select Quiz:</label>
@@ -427,4 +458,4 @@ const Questions = (props) => {
     );
 };
 
-export default Questions;
+export default QuizQA;
