@@ -10,10 +10,9 @@ import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import Lightbox from "react-awesome-lightbox";
 import {
-    postCreateNewAnswerForQuestion,
-    postCreateNewQuestionForQuiz,
     getAllQuizForAdmin,
     getQuizWithQA,
+    postUpsertQA,
 } from "../../../../services/apiService";
 import { toast } from "react-toastify";
 
@@ -55,8 +54,23 @@ const QuizQA = (props) => {
 
     const fetchQuestion = async (quizId) => {
         let res = await getQuizWithQA(quizId);
-        console.log("check res", res);
-        setQuestions(res.DT.qa);
+        let newQuestion = [];
+
+        for (let i = 0; i < res.DT.qa.length; i++) {
+            let qa = res.DT.qa[i];
+            // console.log("check newquestion", res.DT.qa[i]);
+            if (qa.imageFile) {
+                qa.imageFile = await urltoFile(
+                    `data:img/png;base64,${qa.imageFile}`,
+                    `Question-${i}`,
+                    "text/plain"
+                );
+                qa.imageName = qa.imageFile.name;
+            }
+            newQuestion.push(qa);
+        }
+        // console.log("check newquestion", newQuestion);
+        setQuestions(newQuestion);
     };
 
     // return a promise that resolves with a File instance
@@ -241,23 +255,36 @@ const QuizQA = (props) => {
             return;
         }
 
-        //submit question
-        for (const question of questions) {
-            const q = await postCreateNewQuestionForQuiz(
-                +selectedQuiz.value,
-                question.description,
-                question.imageFile
-            );
-            //submit answer
-            for (const answer of question.answers) {
-                await postCreateNewAnswerForQuestion(
-                    answer.description,
-                    answer.isCorrect,
-                    q.DT.id
+        //convert file to base64
+        const toBase64 = (file) =>
+            new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+            });
+
+        let cloneQuestions = _.cloneDeep(questions);
+        for (let i = 0; i < cloneQuestions.length; i++) {
+            if (cloneQuestions[i].imageFile) {
+                cloneQuestions[i].imageFile = await toBase64(
+                    cloneQuestions[i].imageFile
                 );
             }
         }
-        toast.success("Create questions and answer succed!");
+        //submit question
+        let res = await postUpsertQA({
+            quizId: selectedQuiz.value,
+            questions: cloneQuestions,
+        });
+        
+        // console.log("check res", res);
+
+        if (res && res.EC === 0) {
+            toast.success(res.EM);
+            // fetchQuestion();
+        }
+
         setQuestions(initQuestions);
     };
 
